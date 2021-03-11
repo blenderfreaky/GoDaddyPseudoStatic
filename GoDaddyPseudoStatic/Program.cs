@@ -15,10 +15,7 @@ namespace GoDaddyPseudoStatic
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseWindowsService()
-                .ConfigureAppConfiguration(builder =>
-                {
-                    builder.AddUserSecrets<WorkerSecrets>();
-                })
+                .ConfigureAppConfiguration(builder => builder.AddUserSecrets<WorkerSecrets>())
                 .ConfigureServices((hostContext, services) =>
                 {
                     IConfiguration configuration = hostContext.Configuration;
@@ -29,10 +26,7 @@ namespace GoDaddyPseudoStatic
                     var secrets = configuration.GetSection("WorkerSecrets").Get<WorkerSecrets>();
                     services.AddSingleton(secrets);
 
-                    services.AddLogging(opt =>
-                    {
-                        opt.AddConsole(c => c.TimestampFormat = "[HH:mm:ss] ");
-                    });
+                    services.AddLogging(opt => opt.AddConsole(c => c.TimestampFormat = "[HH:mm:ss] "));
 
                     services.AddHostedService<Worker>();
                 });

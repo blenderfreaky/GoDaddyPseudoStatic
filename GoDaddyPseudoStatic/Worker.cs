@@ -21,7 +21,7 @@ namespace GoDaddyPseudoStatic
         private readonly HttpClient _ipInfoClient;
         private readonly HttpClient _goDaddyClient;
 
-        private Uri _ipInfoUri;
+        private readonly Uri _ipInfoUri;
         private Uri _goDaddyUri;
 
         public Worker(ILogger<Worker> logger, WorkerOptions options, WorkerSecrets secrets)
@@ -62,7 +62,7 @@ namespace GoDaddyPseudoStatic
                 {
                     InitFromConfig();
 
-                    await AttemptUpdate();
+                    await AttemptUpdate().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
