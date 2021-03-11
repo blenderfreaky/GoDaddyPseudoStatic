@@ -1,6 +1,7 @@
 namespace GoDaddyPseudoStatic
 {
     using System;
+    using System.IO;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -52,6 +53,7 @@ namespace GoDaddyPseudoStatic
             _ipInfoClient.Dispose();
             _goDaddyClient.Dispose();
             base.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -69,27 +71,11 @@ namespace GoDaddyPseudoStatic
                     _logger.LogError(e.Message);
                 }
 
-                var timeOfDay = DateTime.Now.TimeOfDay;
+                var next = _options.RunSchedule.GetNextExecution(DateTime.Now);
 
-                TimeSpan interval;
+                _logger.LogInformation("Ran update. Next update at {nextUpdateTime}", next);
 
-                bool afterStart = timeOfDay >= _options.TimeStart;
-                bool beforeEnd = timeOfDay < _options.TimeEnd;
-
-                if (afterStart && beforeEnd)
-                {
-                    interval = TimeSpan.FromSeconds(_options.Interval);
-                    _logger.LogInformation("Inside of operational times, repeating until {end}", _options.TimeEnd);
-                }
-                else
-                {
-                    var diff = _options.TimeStart - timeOfDay;
-                    interval = !afterStart ? diff : TimeSpan.FromDays(1) + diff;
-                    _logger.LogInformation("Outside of operational times, waiting until {start}", _options.TimeStart);
-                }
-
-                _logger.LogDebug("Waiting for {interval}", interval);
-                await Task.Delay(interval, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(next.Subtract(DateTime.Now), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -130,6 +116,8 @@ namespace GoDaddyPseudoStatic
             if (domainUpdateResponse.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Updated IP sucessfully from {oldIp} to {newIp}", domainIp, ip);
+                if (!File.Exists("ipUpdates.csv")) await File.WriteAllTextAsync("ipUpdates.csv", "Time, UTC Time, Old IP, New IP").ConfigureAwait(false);
+                await File.AppendAllTextAsync("ipUpdates.csv", $"\n{DateTime.Now}, {DateTime.UtcNow}, {domainIp}, {ip}").ConfigureAwait(false);
             }
             else
             {
