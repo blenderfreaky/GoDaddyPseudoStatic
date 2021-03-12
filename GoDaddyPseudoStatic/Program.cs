@@ -18,6 +18,7 @@ namespace GoDaddyPseudoStatic
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseWindowsService()
                 .ConfigureAppConfiguration(builder => builder.AddJsonFile("appsettings.apikey.json"))
                 .ConfigureLogging(loggerFactory => loggerFactory.AddEventLog().AddSimpleConsole(x => x.TimestampFormat = "[HH:mm:ss] "))
                 .ConfigureServices((hostContext, services) =>
