@@ -1,9 +1,11 @@
 namespace GoDaddyPseudoStatic
 {
+    using GoDaddyPseudoStatic.RunSchedules;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -71,11 +73,11 @@ namespace GoDaddyPseudoStatic
                     _logger.LogError(e.Message);
                 }
 
-                var next = _options.RunSchedule.GetNextExecution(DateTime.Now);
+                var next = _options.RunSchedule.GetNextExecutions(DateTime.Now).Take(4).ToList();
 
-                _logger.LogInformation("Ran update. Next update at {nextUpdateTime}", next);
+                _logger.LogInformation("Ran update. Next updates at {nextUpdateTimes}", next);
 
-                await Task.Delay(next.Subtract(DateTime.Now), cancellationToken).ConfigureAwait(false);
+                await Task.Delay(next[0].Subtract(DateTime.Now), cancellationToken).ConfigureAwait(false);
             }
         }
 

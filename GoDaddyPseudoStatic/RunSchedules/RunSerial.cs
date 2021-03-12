@@ -8,8 +8,7 @@
     {
         public DateTime GetNextExecution(DateTime start)
         {
-            var ticks = start.Ticks;
-            ticks -= (PhaseOffset ?? DateTime.UnixEpoch).Ticks;
+            var ticks = start.Subtract(PhaseOffset ?? DateTime.UnixEpoch).Ticks;
 
             var intervalDuration = Schedules.Sum(x => x.Duration.Ticks);
             ticks %= intervalDuration;
