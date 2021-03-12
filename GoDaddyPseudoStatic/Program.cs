@@ -4,6 +4,7 @@ namespace GoDaddyPseudoStatic
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using System.Text.Json;
 
     public static class Program
     {
@@ -20,7 +21,7 @@ namespace GoDaddyPseudoStatic
                 {
                     IConfiguration configuration = hostContext.Configuration;
 
-                    var options = configuration.GetSection("Worker").Get<WorkerOptions>();
+                    var options = JsonSerializer.Deserialize<WorkerOptions>(configuration.GetSection("Worker").ToJson(), new JsonSerializerOptions { IncludeFields = true, Converters = { new TimeSpanConverter() } });
                     services.AddSingleton(options);
 
                     var secrets = configuration.GetSection("WorkerSecrets").Get<WorkerSecrets>();

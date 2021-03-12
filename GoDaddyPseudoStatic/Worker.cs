@@ -1,5 +1,7 @@
 namespace GoDaddyPseudoStatic
 {
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.IO;
     using System.Net;
@@ -9,8 +11,6 @@ namespace GoDaddyPseudoStatic
     using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging;
 
     public class Worker : BackgroundService
     {

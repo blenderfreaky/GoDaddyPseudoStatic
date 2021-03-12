@@ -1,6 +1,6 @@
 ﻿namespace GoDaddyPseudoStatic
 {
-    using GoDaddyPseudoStatic.RunSchedule;
+    using GoDaddyPseudoStatic.RunSchedules;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -16,7 +16,9 @@
             _types = types;
         }
 
-        public InheritanceConverter() : this(AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => typeof(T).IsAssignableFrom(x)).ToDictionary(x => x.Name, x => x)) { }
+        public InheritanceConverter() : this(AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => typeof(T).IsAssignableFrom(x)).ToDictionary(x => x.Name, x => x))
+        {
+        }
 
         public override T Read(
             ref Utf8JsonReader reader,
@@ -25,7 +27,7 @@
         {
             if (typeof(T) != typeToConvert) throw new ArgumentException($"Can't convert objects of type {typeToConvert}", nameof(typeToConvert));
 
-            reader.Read();
+            //reader.Read();
             if (reader.TokenType != JsonTokenType.StartObject) throw new JsonException();
 
             reader.Read();
@@ -53,6 +55,7 @@
                 case null:
                     JsonSerializer.Serialize(writer, (IRunSchedule)null, options);
                     break;
+
                 default:
                     {
                         writer.WriteStartObject();

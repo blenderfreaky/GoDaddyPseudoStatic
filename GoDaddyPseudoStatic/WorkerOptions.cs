@@ -1,9 +1,6 @@
 ﻿namespace GoDaddyPseudoStatic
 {
-    using GoDaddyPseudoStatic.RunSchedule;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     public class WorkerOptions
     {
@@ -36,6 +33,7 @@
         /// <summary>
         /// The schedule to update the ip at.
         /// </summary>
-        public IRunSchedule RunSchedule { get; init; }
+        [JsonConverter(typeof(InheritanceConverter<RunSchedules.IRunSchedule>))]
+        public RunSchedules.IRunSchedule RunSchedule { get; init; }
     }
 }
