@@ -1,5 +1,6 @@
 ﻿namespace GoDaddyPseudoStatic.RunSchedules
 {
+    using GoDaddyPseudoStatic.Json;
     using System;
 
     [JsonInterfaceConverter(typeof(InheritanceConverter<IRunSchedule>))]

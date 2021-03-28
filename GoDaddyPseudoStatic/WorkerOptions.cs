@@ -1,6 +1,6 @@
 ﻿namespace GoDaddyPseudoStatic
 {
-    using System.Text.Json.Serialization;
+    using GoDaddyPseudoStatic.RunSchedules;
 
     public class WorkerOptions
     {
@@ -15,25 +15,15 @@
         /// </summary>
         public string Name { get; init; }
 
-        ///// <summary>
-        ///// Time at which the worker starts running.
-        ///// </summary>
-        //public TimeSpan TimeStart { get; init; }
-
-        ///// <summary>
-        ///// Time at which the worker stops running.
-        ///// </summary>
-        //public TimeSpan TimeEnd { get; init; }
-
-        ///// <summary>
-        ///// Time between runs in seconds.
-        ///// </summary>
-        //public double Interval { get; init; }
-
         /// <summary>
         /// The schedule to update the ip at.
         /// </summary>
-        [JsonConverter(typeof(InheritanceConverter<RunSchedules.IRunSchedule>))]
-        public RunSchedules.IRunSchedule RunSchedule { get; init; }
+        public IRunSchedule RunSchedule { get; init; }
+    }
+
+    public class WorkerSecrets
+    {
+        public string Key { get; init; }
+        public string Secret { get; init; }
     }
 }

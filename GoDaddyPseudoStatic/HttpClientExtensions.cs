@@ -9,7 +9,7 @@
     {
         public static async ValueTask<T> DeserializeAsync<T>(this HttpContent content, JsonSerializerOptions options = null, CancellationToken cancellationToken = default)
         {
-            var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
             return await JsonSerializer.DeserializeAsync<T>(stream, options, cancellationToken).ConfigureAwait(false);
         }

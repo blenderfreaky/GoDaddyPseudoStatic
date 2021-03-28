@@ -1,4 +1,4 @@
-﻿namespace GoDaddyPseudoStatic
+﻿namespace GoDaddyPseudoStatic.Json
 {
     using System;
     using System.Text.Json.Serialization;

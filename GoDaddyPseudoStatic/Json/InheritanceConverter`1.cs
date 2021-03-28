@@ -1,4 +1,4 @@
-﻿namespace GoDaddyPseudoStatic
+﻿namespace GoDaddyPseudoStatic.Json
 {
     using GoDaddyPseudoStatic.RunSchedules;
     using System;

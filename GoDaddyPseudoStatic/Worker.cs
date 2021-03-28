@@ -25,7 +25,7 @@ namespace GoDaddyPseudoStatic
         private readonly HttpClient _goDaddyClient;
 
         private readonly Uri _ipInfoUri;
-        private Uri _goDaddyUri;
+        private readonly Uri _goDaddyUri;
 
         public Worker(ILogger<Worker> logger, WorkerOptions options, WorkerSecrets secrets)
         {
@@ -40,11 +40,6 @@ namespace GoDaddyPseudoStatic
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
-            InitFromConfig();
-        }
-
-        private void InitFromConfig()
-        {
             _goDaddyUri = new Uri($"https://api.godaddy.com/v1/domains/{_options.Domain}/records/A/{_options.Name}");
 
             _goDaddyClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("sso-key", $"{_secrets.Key}:{_secrets.Secret}");
@@ -64,29 +59,27 @@ namespace GoDaddyPseudoStatic
             {
                 try
                 {
-                    InitFromConfig();
-
                     await AttemptUpdate().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e.Message);
+                    _logger.LogError(e, "Error while attempting IP update");
                 }
 
                 var next = _options.RunSchedule.GetNextExecutions(DateTime.Now).Take(4).ToList();
 
-                _logger.LogInformation("Ran update. Next updates at {nextUpdateTimes}", next);
+                _logger.LogDebug("Ran update. Next updates at {nextUpdateTimes}", next);
 
                 await Task.Delay(next[0].Subtract(DateTime.Now), cancellationToken).ConfigureAwait(false);
             }
         }
 
+        public record DomainInfo(string Data, string Name, int Ttl, string Type);
+        public record IpInfo(string IP);
+
         private async ValueTask AttemptUpdate()
         {
-            var jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            JsonSerializerOptions jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
             var ipInfoResponse = await _ipInfoClient.GetAsync(_ipInfoUri).ConfigureAwait(false);
             if (!ipInfoResponse.IsSuccessStatusCode)
@@ -108,16 +101,17 @@ namespace GoDaddyPseudoStatic
 
             if (string.Equals(ip, domainIp, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("Up-To-Date, IPv4: {publicIp}", ip);
+                _logger.LogDebug("Up-To-Date, IPv4: {publicIp}", ip);
                 return;
             }
 
-            var domainUpdateRequest = new StringContent("[{\"data\":\"" + ip + "\"}]", Encoding.UTF8, "application/json");
+            StringContent domainUpdateRequest = new("[{\"data\":\"" + ip + "\"}]", Encoding.UTF8, "application/json");
             var domainUpdateResponse = await _goDaddyClient.PutAsync(_goDaddyUri, domainUpdateRequest).ConfigureAwait(false);
 
             if (domainUpdateResponse.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Updated IP sucessfully from {oldIp} to {newIp}", domainIp, ip);
+
                 if (!File.Exists("ipUpdates.csv")) await File.WriteAllTextAsync("ipUpdates.csv", "Time, UTC Time, Old IP, New IP").ConfigureAwait(false);
                 await File.AppendAllTextAsync("ipUpdates.csv", $"\n{DateTime.Now}, {DateTime.UtcNow}, {domainIp}, {ip}").ConfigureAwait(false);
             }

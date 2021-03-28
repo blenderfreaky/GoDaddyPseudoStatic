@@ -1,4 +1,4 @@
-﻿namespace GoDaddyPseudoStatic
+﻿namespace GoDaddyPseudoStatic.Json
 {
     using Microsoft.Extensions.Configuration;
     using System;
