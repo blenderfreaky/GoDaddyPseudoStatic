@@ -4,6 +4,7 @@ namespace GoDaddyPseudoStatic
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -22,10 +23,10 @@ namespace GoDaddyPseudoStatic
         private readonly WorkerSecrets _secrets;
 
         private readonly HttpClient _ipInfoClient;
-        private readonly HttpClient _goDaddyClient;
+        private readonly HttpClient _dnsClient;
 
         private readonly Uri _ipInfoUri;
-        private readonly Uri _goDaddyUri;
+        private readonly Uri _dnsEndpoint;
 
         public Worker(ILogger<Worker> logger, WorkerOptions options, WorkerSecrets secrets)
         {
@@ -36,19 +37,19 @@ namespace GoDaddyPseudoStatic
 
             _ipInfoUri = new Uri("https://ipinfo.io/json");
             _ipInfoClient = new HttpClient();
-            _goDaddyClient = new HttpClient();
+            _dnsClient = new HttpClient();
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
-            _goDaddyUri = new Uri($"https://api.godaddy.com/v1/domains/{_options.Domain}/records/A/{_options.Name}");
+            _dnsEndpoint = new Uri(string.Format(_options.Endpoint, _options.Domain, _options.Name));
 
-            _goDaddyClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("sso-key", $"{_secrets.Key}:{_secrets.Secret}");
+            _dnsClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", _secrets.AuthorizationHeader);
         }
 
         public override void Dispose()
         {
             _ipInfoClient.Dispose();
-            _goDaddyClient.Dispose();
+            _dnsClient.Dispose();
             base.Dispose();
             GC.SuppressFinalize(this);
         }
@@ -90,7 +91,7 @@ namespace GoDaddyPseudoStatic
             var ipInfo = await ipInfoResponse.Content.DeserializeAsync<IpInfo>(jsonOptions).ConfigureAwait(false);
             var ip = ipInfo.IP;
 
-            var domainInfoRespone = await _goDaddyClient.GetAsync(_goDaddyUri).ConfigureAwait(false);
+            var domainInfoRespone = await _dnsClient.GetAsync(_dnsEndpoint).ConfigureAwait(false);
             if (!domainInfoRespone.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Error calling GoDaddy API:\n{response}", domainInfoRespone);
@@ -106,7 +107,7 @@ namespace GoDaddyPseudoStatic
             }
 
             StringContent domainUpdateRequest = new("[{\"data\":\"" + ip + "\"}]", Encoding.UTF8, "application/json");
-            var domainUpdateResponse = await _goDaddyClient.PutAsync(_goDaddyUri, domainUpdateRequest).ConfigureAwait(false);
+            var domainUpdateResponse = await _dnsClient.PutAsync(_dnsEndpoint, domainUpdateRequest).ConfigureAwait(false);
 
             if (domainUpdateResponse.IsSuccessStatusCode)
             {

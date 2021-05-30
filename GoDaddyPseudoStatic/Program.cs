@@ -6,6 +6,7 @@ namespace GoDaddyPseudoStatic
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Globalization;
     using System.Text.Json;
 
     public static class Program
@@ -14,6 +15,7 @@ namespace GoDaddyPseudoStatic
         {
             // This needs to be set before anything else happens so that the Hosting stuff finds the appsettings.json file
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             CreateHostBuilder(args).Build().Run();
         }
 
