@@ -1,6 +1,7 @@
 ﻿namespace GoDaddyPseudoStatic
 {
     using GoDaddyPseudoStatic.RunSchedules;
+    using System.Text.Json.Serialization;
 
     public record WorkerOptions
     {
@@ -16,14 +17,17 @@
         public string Name { get; init; }
 
         /// <summary>
-        /// The API endpoint to call.
-        /// String format parameters:
-        /// {0} = Domain
-        /// {1} = Name
+        /// The provider to use.
+        /// Supported providers are: GoDaddy, Gandi
         /// </summary>
-        /// <example>"https://api.godaddy.com/v1/domains/{0}/records/A/{1}" for GoDaddy</example>
-        /// <example>"https://api.gandi.net/v5/livedns/domains/{0}/records" for Gandi</example>
-        public string Endpoint { get; init; }
+        public ProviderTypes Provider { get; init; }
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum ProviderTypes
+        {
+            Gandi,
+            GoDaddy
+        }
 
         /// <summary>
         /// The schedule to update the ip at.
